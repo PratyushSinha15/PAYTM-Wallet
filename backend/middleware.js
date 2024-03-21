@@ -3,7 +3,7 @@
 // puts the userId in the request object if token checks out
 // if not, return 403 status bacl to user
 
-const {JWT_SECRET} = require('./config');
+const { JWT_SECRET } = require('./config');
 const jwt = require('jsonwebtoken');
 
 const authMiddleware = async (req, res, next) => {
@@ -19,9 +19,13 @@ const authMiddleware = async (req, res, next) => {
         const decoded=jwt.verify(token, JWT_SECRET);
         req.userId= decoded.userId;
         next();
-    }catch{
+    }catch(err){
         return res.status(403).json({
             message: "Unauthorized"
         });
     }
+};
+
+module.exports = {
+    authMiddleware
 };

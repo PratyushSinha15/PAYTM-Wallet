@@ -7,10 +7,7 @@ const mongoose = require('mongoose');
 
 // importing mongoose and connecting it to a database of my choice
 
-mongoose.connect("mongodb+srv://pratyushkumarsinha798:WBahXBVFkGcQno6M@paytmdb.bofbdg5.mongodb.net/?retryWrites=true&w=majority&appName=Paytmdb", {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-});
+mongoose.connect("mongodb+srv://pratyushkumarsinha798:WBahXBVFkGcQno6M@paytmdb.bofbdg5.mongodb.net/?retryWrites=true&w=majority&appName=Paytmdb");
 
 const userSchema = new mongoose.Schema({
     username: {
@@ -70,5 +67,6 @@ const Account= mongoose.model('Account', accountSchema);
 const User = mongoose.model('User', userSchema);
 
 module.exports={
-    User
+    User,
+    Account
 };

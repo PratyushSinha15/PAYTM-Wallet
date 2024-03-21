@@ -1,61 +1,53 @@
 const express = require("express");
-const {authMiddleware} = require('../middleware');
-const {Account, User}= require('../db');
-const {default:mongoose} = require("mongoose");
+const { authMiddleware } = require('../middleware');
+const { Account } = require('../db');
+const mongoose = require("mongoose");
 
 const router = express.Router();
 
-//creating a route to get the balance
-//it is an endpoint for user to get their balance 
-router.get("/balance", authMiddleware, async(req,res)=>{
-    const account=await Account.findOne({
-        //find one account with user id 
-        userId:req.userId
-    });
-    res.json({
-        //access the balance for that user id
-        balance:account.balance
-    })
+// Get account balance
+router.get("/balance", authMiddleware, async (req, res) => {
+        const account = await Account.findOne({ 
+            userId: req.userId 
+        });
+        res.json({ balance: account.balance });
 });
 
-
-
-//transfering money to another account
-
-router.post("/transfer", authMiddleware, async(req, res)=>{
-    const session= await mongoose.startSession();
-    
-
+// Transfer funds between accounts
+router.post("/transfer", authMiddleware, async (req, res) => {
+    const session = await mongoose.startSession();
     session.startTransaction();
-    
-    const {amount, to}=req.body;
+    try {
+        const { amount, to } = req.body;
 
-    //Fetch the accounts within transaction
-    const account = await Account.findOne({ userId: req.userId})
-    if(!account || account.balance<amount){
+        // Validate input
+        if (!amount || isNaN(amount) || amount <= 0) {
+            throw new Error("Invalid amount");
+        }
+
+        const fromAccount = await Account.findOne({ userId: req.userId }).session(session);
+        if (!fromAccount || fromAccount.balance < amount) {
+            throw new Error("Insufficient balance");
+        }
+
+        const toAccount = await Account.findOne({ userId: to }).session(session);
+        if (!toAccount) {
+            throw new Error("Recipient account not found");
+        }
+
+        // Perform transfer
+        await Account.updateOne({ userId: req.userId }, { $inc: { balance: -amount } }).session(session);
+        await Account.updateOne({ userId: to }, { $inc: { balance: amount } }).session(session);
+
+        await session.commitTransaction();
+        res.json({ message: "Transfer successful" });
+    } catch (error) {
+        console.error("Error transferring funds:", error);
         await session.abortTransaction();
-        return res.status(400).json({
-            message:"Insufficient balance"
-        });
+        res.status(400).json({ message: error.message });
+    } finally {
+        session.endSession();
     }
-
-    const toAccount = await Account.findOne({ userId: to}).session(session);
-
-    if(!toAccount){
-        await session.abortTransaction();
-        return res.status(400).json({
-            message:"Invalid Account"
-        });
-    }
-
-    //once all these checks are perfonmer then we will  proceed transfer
-    await Account.updateOne({userId: req.userId},{$inc:{balance: -amount}}).session(session);
-    await Account.updateOne({userId: to},{$inc:{balance: amount}}).session(session);
-    
-    //commit the transaction
-    await session.commitTransaction();
-    res.json({
-        message: "Transfer sucessfull"
-    });
 });
-module.exports= router;
+
+module.exports = router;
