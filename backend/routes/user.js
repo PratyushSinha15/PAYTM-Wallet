@@ -43,6 +43,12 @@ router.post('/signup', async(req,res)=>{
 
     const userId=user._id;//getting the id of the user
 
+    //inserting dummy balance in users account
+    await Account.create ({
+        userId,
+        balance: 1+Math.random()* 10000
+    })
+
     //creating a jwt token
     const token =jwt.sign({
         userId
@@ -103,9 +109,11 @@ const updateSchema= zod.object({
 })
 
 //route to update user details
-router.put('/',authMiddleware,async(req,res)=>{
-    const {sucess} =updateSchema.safeParse(req.body);
-    if(!sucess){
+router.put("/", authMiddleware,async(req,res)=>{
+    console.log(req.body);
+    const {success} =updateSchema.safeParse(req.body);
+    console.log(success);
+    if(!success){
         res.status(411).json({
             message:"Error while updating user details"
         });
@@ -114,9 +122,12 @@ router.put('/',authMiddleware,async(req,res)=>{
     //this means that we are updating the user details of the user who is logged in
     //req.body will contain the details that the user wants to update
     //req.userId will contain the id of the user who is logged in
-    await User.updateOne({
+    const updatedresult=await User.updateOne(req.body,{
         _id:req.userId
-    },req.body);
+    });
+
+    console.log(updatedresult);
+    
 
 
     res.json({
