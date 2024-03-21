@@ -3,6 +3,7 @@ const {User}= require('../db');
 const zod= require('zod');
 const jwt= require('jsonwebtoken');
 const {JWT_SECRET}= require('../config');
+const {authMiddleware}= require('../middleware');
 const router = express.Router();
 
 const signupSchema= zod.object({
@@ -61,7 +62,7 @@ const signinSchema= zod.object({
     password:zod.string()
 });
 
-//login route
+//Signin route
 router.post('/signin', async(req,res)=>{
     //validating the data that is being sent to the server using safeParse method 
     //safeParse method is used to validate the data that is being sent to the server
@@ -93,6 +94,61 @@ router.post('/signin', async(req,res)=>{
         });
     }
 });
+
+//updating user details
+const updateSchema= zod.object({
+    password:zod.string().optional(),
+    firstName:zod.string().optional(),
+    lastName:zod.string().optional()
+})
+
+//route to update user details
+router.put('/',authMiddleware,async(req,res)=>{
+    const {sucess} =updateSchema.safeParse(req.body);
+    if(!sucess){
+        res.status(411).json({
+            message:"Error while updating user details"
+        });
+    }
+
+    //this means that we are updating the user details of the user who is logged in
+    //req.body will contain the details that the user wants to update
+    //req.userId will contain the id of the user who is logged in
+    await User.updateOne({
+        _id:req.userId
+    },req.body);
+
+
+    res.json({
+        message:"User Details Updated"
+    });
+})
+
+// if the request URL is http://example.com/bulk?filter=John, req.query.filter will be "John".
+router.get('/bulk', async(req,res)=>{
+    const filter=req.query.filter||"";
+    const users= await User.find({
+        //using regex to search for the user
+        //regex is used to search for the user in the database using the filter that is being sent to the server by the user
+        $or: [{
+            firstName:{
+                "$regex" : filter
+            }
+        },{
+            lastName:{
+                "$regex":filter
+            }
+        }]
+    })
+    res.json({
+        user:users.map(user=>({
+            username: user.username,
+            firstName:user.firstName,
+            lastname: user.lastName,
+            _id: user._id
+        }))
+    })
+})
 
 
 module.exports= router;

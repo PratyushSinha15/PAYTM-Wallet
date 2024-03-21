@@ -13,7 +13,7 @@ const authMiddleware = async (req, res, next) => {
             message: "Unauthorized"
         });
     }
-//format of bearer token is Bearer token
+    //format of bearer token is Bearer token
     const token= authHeader.split(' ')[1];//splitting the token from the header because the token is in the format of Bearer token so we are splitting the token from the header
     try{
         const decoded=jwt.verify(token, JWT_SECRET);
