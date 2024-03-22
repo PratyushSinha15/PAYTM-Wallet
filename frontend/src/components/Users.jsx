@@ -10,7 +10,8 @@ export const Users=()=>{
         _id:1
     }]);
 
-    retrun( <>
+    return( 
+    <>
         <div className="font-bold mt-6 text-lg">
             Users
         </div>
@@ -19,7 +20,9 @@ export const Users=()=>{
         </div>
 
         <div>
-            {users.map(user => <User user={user}/>)}
+            {users.map(user => (
+                <User key={user._id} user={user}/>
+            ))}
         </div>
     </>
     );
