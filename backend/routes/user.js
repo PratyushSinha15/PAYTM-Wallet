@@ -72,6 +72,32 @@ const signinSchema = zod.object({
   password: zod.string(),
 });
 
+//user route
+router.get("/me", authMiddleware, async (req, res) => {
+  try {
+    // Fetch the user details from the database using the user ID stored in req.userId
+    const user = await User.findById(req.userId);
+
+    if (user) {
+      // Send the user details in the response
+      res.json({
+        username: user.username,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        _id: user._id,
+      });
+    } else {
+      // If user is not found, send a 404 response
+      res.status(404).json({ message: "User not found" });
+    }
+  } catch (error) {
+    // If an error occurs, send a 500 response
+    console.error("Error fetching user details:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+
 //Signin route
 router.post("/signin", async (req, res) => {
   //validating the data that is being sent to the server using safeParse method
@@ -146,6 +172,9 @@ router.put("/", authMiddleware, async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 });
+
+// Route to get detail of current user
+//this route is used to get the details of the current user
 
 // if the request URL is http://example.com/bulk?filter=John, req.query.filter will be "John".
 router.get("/bulk", async (req, res) => {

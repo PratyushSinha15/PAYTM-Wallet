@@ -6,15 +6,28 @@ import { Heading } from "../components/Heading";
 import { SubHeading } from "../components/SubHeading";
 import { BottomWarning } from "../components/BottomWarning";
 import axios from "axios";
+import { useEffect } from "react";
 
 import { useNavigate } from "react-router-dom";
 
 const Signup = () => {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Check if user has a token
+    const token = localStorage.getItem("token");
+
+    if (token) {
+      // If token found, redirect user to dashboard page
+      navigate("/dashboard");
+    }
+  }, [navigate]);
+
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const navigate = useNavigate();
+
   return (
     <div className="bg-slate-300 h-screen flex justify-center">
       <div className="flex flex-col justify-center">

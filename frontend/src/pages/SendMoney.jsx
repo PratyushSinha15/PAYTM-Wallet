@@ -50,7 +50,7 @@ const SendMoney = () => {
                   //we are sending the money to the user with the id
                   //and the amount which we are sending is the amount which is entered in the input field
                   axios.post("http://localhost:3000/api/v1/account/transfer", {
-                      to: id,
+                      to:id,
                       amount,
                   },{
                     headers:{
